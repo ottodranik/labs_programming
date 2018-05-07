@@ -13,7 +13,7 @@ const data = fileData
     return res;
   }, [])
 
-console.log(data)
+printMatrix(data)
 
 class SquareGrid {
 
@@ -63,23 +63,13 @@ class SquareGrid {
 }
 
 const graph = new SquareGrid(data);
-console.log(graph.weights)
-console.log(graph.walls)
-// graph.walls = [[1, 7], [1, 8], [2, 7], [2, 8], [3, 7], [3, 8]]
-// graph.weights = [{vertex}
-//   (3, 4), (3, 5), (4, 1), (4, 2),
-//                                        (4, 3), (4, 4), (4, 5), (4, 6), 
-//                                        (4, 7), (4, 8), (5, 1), (5, 2),
-//                                        (5, 3), (5, 4), (5, 5), (5, 6), 
-//                                        (5, 7), (5, 8), (6, 2), (6, 3), 
-//                                        (6, 4), (6, 5), (6, 6), (6, 7), 
-//                                        (7, 3), (7, 4), (7, 5)
-// ]
 
 const { came_from, cost_so_far } = AStar( graph, [1, 4], [7, 8] );
+console.log('----------------------------')
 draw_grid(data, [1, 4], [7, 8])
-console.log(came_from, cost_so_far)
-
+console.log('----------------------------')
+draw_grid(data, [1, 4], [7, 8], cost_so_far)
+console.log('----------------------------')
 
 function heuristic(a, b) {
   const [x1, y1] = a
@@ -96,27 +86,29 @@ function AStar(G, start, goal) {
   cost_so_far[start] = 0;
 
   while (!frontier.isEmpty()) {
-    // current = frontier.get()
     current = frontier.dequeue();
 
     // if current == goal:
     if (current[0] === goal[0] && current[1] === goal[1]) {
-      // path = this.shortestPath(smallest, previous, begin);
       break
     }
     
-    // for next in graph.neighbors(current):
     let neighbors = G.neighbors(current);
+    
     for (let i = 0; i < neighbors.length; i++) {
-        // new_cost = cost_so_far[current] + graph.cost(current, next)
-        let new_cost = cost_so_far[current] + G.cost(current, neighbors[i]);
-        // if next not in cost_so_far or new_cost < cost_so_far[next]:
-        if (!cost_so_far[neighbors[i]] || new_cost < cost_so_far[neighbors[i]]) {
-          cost_so_far[neighbors[i]] = new_cost
-          priority = new_cost + heuristic(goal, neighbors[i])
-          frontier.enqueue(neighbors[i], priority)
-          came_from[neighbors[i]] = current
-        }
+
+      if (neighbors[i][0] === start[0] && neighbors[i][1] === start[1]) {
+        continue;
+      }
+      
+      let new_cost = cost_so_far[current] + G.cost(current, neighbors[i]);
+      
+      if (!cost_so_far[neighbors[i]] || new_cost < cost_so_far[neighbors[i]]) {
+        cost_so_far[neighbors[i]] = new_cost
+        priority = new_cost + heuristic(goal, neighbors[i])
+        frontier.enqueue(neighbors[i], priority)
+        came_from[neighbors[i]] = current
+      }
     }
   }
   return {
@@ -125,15 +117,7 @@ function AStar(G, start, goal) {
   }
 }
 
-function Point(x, y) {
-  this.x = x;
-  this.y = y;
-}
-Point.prototype.equal = function(point1, point2) {
-  return point1.x === point2.x && point1.y === point2.y;
-}
-
-function draw_grid(matrix, from, to) {
+function draw_grid(matrix, from, to, cost_so_far) {
   const gridLine = [];
   for (let i = 0; i < matrix.length; i++) {
     gridLine[i] = [];
@@ -145,13 +129,24 @@ function draw_grid(matrix, from, to) {
       if (i === to[0] && j === to[1]) {
         gridLine[i][j] = 'Z';
       }
+      if (cost_so_far && cost_so_far[i+','+j]) {
+        gridLine[i][j] = cost_so_far[i+','+j];
+      }
     }
-    // gridLine[i] = Array.from(
-    //   { length: grid.width },
-    //   (x, j) => grid.walls.length && grid.walls[j][i] ? '#' : '.'
-    // );
   }
-  console.log(
-    gridLine.map(item => item.join(' ')).join('\n')
-  )
+  const grid = gridLine.map(row => {
+    return row.reduce((res, val) => {
+      res += val;
+      res += val.toString().length === 2 ? ' ' : '  ';
+      return res;
+    }, '')
+  })
+  console.log(grid.join('\n'))
 }
+
+// Вывести матрицу
+function printMatrix(matrix) {
+  matrix.forEach(item => {
+    console.log(item.join('\t'));
+  });
+};
