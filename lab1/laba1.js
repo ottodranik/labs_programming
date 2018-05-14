@@ -4,7 +4,7 @@ var parse = require('csv-parse');
 var csvData=[];
 
 // Асинхронное чтение строк файла
-fs.createReadStream('lab1/eurovision.csv')
+fs.createReadStream('eurovision.csv')
   .pipe(parse({ delimiter: ',', relax_column_count: true }))
   .on('data', function(csvrow) {
     csvData.push(csvrow);        
